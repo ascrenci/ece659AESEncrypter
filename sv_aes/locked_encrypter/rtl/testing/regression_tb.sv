@@ -63,7 +63,7 @@ module regression_tb;
         run_encryption(
             128'h00112233445566778899AABBCCDDEEFF,
             128'h000102030405060708090A0B0C0D0E0F,
-            32'hABCDEF01,   // CORRECT_KEY
+            8'hAA,   // CORRECT_KEY
             ct_out
         );
         // Verify matches known AES output — no corruption
@@ -79,7 +79,7 @@ module regression_tb;
         repeat(10000) begin
             automatic state_t pt  = {$urandom,$urandom,$urandom,$urandom};
             automatic key_t   k   = {$urandom,$urandom,$urandom,$urandom};
-            run_encryption(pt, k, 32'hABCDEF01, ct_out);
+            run_encryption(pt, k, 8'hAA, ct_out);
             run_encryption_unlocked(pt, k, golden_ct);
 
             if (ct_out != golden_ct) begin

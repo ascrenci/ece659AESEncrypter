@@ -1,10 +1,10 @@
 # --- Variables ---
 VCS      = vcs
 FLAGS    = -sverilog -debug_acc+all -timescale=1ns/1ps -kdb
-TOP_NAME = dip_oracle_tb
+TOP_NAME = aes_tb
 SRC      = aes_tools.sv \
 		   aes_modules.sv \
-		   ./testing/dip_oracle_tb.sv
+		   aes_tb.sv
 SAR_KEY ?= 0
 		   
 # --- Default Target ---

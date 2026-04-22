@@ -19,7 +19,7 @@ module dip_oracle_tb;
     assign bus_candidate.key       = shared_k;
 
     // Fixed correct key vs. swept attacker key
-    assign bus_correct.sar_key   = 32'hAA;  // CORRECT_KEY
+    assign bus_correct.sar_key   = 8'hAA;  // CORRECT_KEY
     sar_key_t attacker_key;
     assign bus_candidate.sar_key = attacker_key;
 
@@ -108,7 +108,7 @@ module dip_oracle_tb;
         repeat(100000) begin
             automatic state_t pt  = {$urandom,$urandom,$urandom,$urandom};
             automatic key_t   k   = {$urandom,$urandom,$urandom,$urandom};
-            automatic sar_key_t sk = 8'hAA;//$urandom;
+            automatic sar_key_t sk = $urandom;
             run_pair(pt, k, sk);
         end
 
@@ -125,7 +125,7 @@ module dip_oracle_tb;
     // -------------------------------------------------------
     
     task phase3_zero_trap;
-        automatic sar_key_t static_trap = 32'hAA;  // CORRECT_KEY ^ 32'h01234567
+        automatic sar_key_t static_trap = 8'h11;  // CORRECT_KEY ^ 32'h01234567
         $display("\n=== Phase 3: Zero-trap key test ===");
 
         // Try 1000 plaintexts where attacker submits the static trap key
@@ -168,7 +168,7 @@ module dip_oracle_tb;
         rst = 1; repeat(4) @(posedge clk); rst = 0;
         total_queries = 0; dip_count = 0;
 
-        //phase1_fixed_pt_sweep();
+        phase1_fixed_pt_sweep();
         phase2_random_sweep();
         //phase3_zero_trap();
         print_report();

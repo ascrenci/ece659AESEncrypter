@@ -121,11 +121,10 @@ module aes_fsm (
     logic skip_mc;
 
     // SAR Lock Vars
-    state_t round_1_state;
-    sar_key_t pk_state;
     localparam sar_key_t CORRECT_KEY = 8'hAA;
-    sar_key_t trap_key;
-    signal_t corrupt_flag;
+    key_t expanded_key;
+    key_t expanded_key_clean;
+    key_t scrambled_key;
 
     assign key_to_expand = (current_state == INIT) ? bus.key : key_reg;
 
@@ -170,21 +169,10 @@ module aes_fsm (
     end
 
     always_comb begin
-        //32'hC1378D3F
-        corrupt_flag = 0;
-        if (current_state == ROUNDS || current_state == FINAL) begin
-            for (int i = 0; i < 16; i++) begin
-                pk_state = round_out[127 - i*8 -: 8];
-                trap_key = CORRECT_KEY ^ (pk_state == 0 ? 8'hC1 : pk_state);
-                //$display("Trap key: %h", trap_key);
-                //$display("Round ctr: %d", round_ctr);
-                if (trap_key == bus.sar_key) begin
-                    corrupt_flag = 1;
-                    break;
-                end else begin
-                    corrupt_flag = 0;
-                end
-            end
+        expanded_key_clean = {4{bus.sar_key ^ CORRECT_KEY}};
+        expanded_key = {(expanded_key_clean << 32) | (expanded_key_clean >> 96)};
+        for (int i = 0; i < 16; i++) begin
+            scrambled_key[127 - i*8 -: 8] = (expanded_key[127 - i*8 -: 8] == 8'h00) ? 8'h00: AES_SBOX[expanded_key[127 - i*8 -: 8]];
         end
     end
 
@@ -193,7 +181,6 @@ module aes_fsm (
             state_reg <= '0;
             key_reg   <= '0;
             round_ctr <= 4'd0;
-            round_1_state <= '0;
         end else begin
             case (current_state)
                 IDLE: begin
@@ -205,17 +192,9 @@ module aes_fsm (
                     round_ctr <= 4'd1;
                 end
                 ROUNDS, FINAL: begin
-                    if (corrupt_flag) begin
-                        state_reg <= ~round_out;
-                    end else begin
-                        state_reg <= round_out;
-                    end
+                    state_reg <= round_out^scrambled_key;
                     key_reg   <= next_key; 
                     round_ctr <= round_ctr + 1;
-
-                    if (round_ctr == 1) begin
-                        round_1_state <= round_out;
-                    end
                 end
                 default: ; 
             endcase
