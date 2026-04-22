@@ -1,0 +1,9 @@
+*
+!*/
+!*.sv
+!*.v
+!Makefile
+!.gitignore
+!*.tcsh
+!*.tcl
+netlist.v
