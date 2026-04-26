@@ -205,16 +205,11 @@ module aes_fsm (
 
 endmodule
 
+/*
 module aes_fsm_unlocked (
     input logic clk,
     input logic rst,
     aes_if.dut bus
-    /*
-    input logic start,
-    input aes_pkg::state_t plaintext,
-    input aes_pkg::key_t key,
-    output aes_pkg::state_t ciphertext,
-    output logic ready*/
 );
     import aes_pkg::*;
 
@@ -300,3 +295,4 @@ module aes_fsm_unlocked (
     assign bus.ciphertext = state_reg;
 
 endmodule
+*/

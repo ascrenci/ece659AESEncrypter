@@ -48,6 +48,7 @@ set_load $port_load [all_outputs]
 #---------------------------------------------------------
 set_max_area 0
 
+set_ungroup [get_designs *] false
 set_fix_multiple_port_nets -all -buffer_constants [get_designs]
 replace_synthetic -ungroup
 

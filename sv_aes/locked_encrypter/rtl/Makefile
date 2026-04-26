@@ -6,7 +6,10 @@ SRC      = aes_tools.sv \
 		   aes_modules.sv \
 		   aes_tb.sv
 SAR_KEY ?= 0
-		   
+SYNTH	 = slow_vdd1v0_basicCells.v \
+		   netlist.v \
+		   aes_tb_post_synth.sv
+ 
 # --- Default Target ---
 all: clean compile run
 
@@ -26,3 +29,6 @@ gui:
 clean:
 	rm -rf csrc simv simv.daidir ucli.key vc_hdrs.h
 	rm -rf *.vcd *.log *.vpd DVEfiles
+
+synth:
+	$(VCS) $(FLAGS) $(SYNTH) -top $(TOP_NAME) -o simv

@@ -19,10 +19,13 @@ set MOD_NAME aes_fsm
 set RPT_DIR rpt
 file mkdir $RPT_DIR
 
+define_design_lib WORK -path ./WORK
+
 # initialize link and synthetic libraries
-set synthetic_library [list dw_foundation.sldb]
-set link_library [list gpdk045_fast.db dw_foundation.sldb]
-set target_library gpdk045_fast.db
+#set synthetic_library [list dw_foundation.sldb]
+#set link_library [list gpdk045_fast.db dw_foundation.sldb]
+set link_library [set target_library [concat  [list gpdk045_fast.db] [list dw_foundation.sldb]]]
+set target_library "gpdk045_fast.db"
 
 # directory where to put the outputs that are needed by PNR, relative
 # to the synthesis directory
@@ -31,7 +34,11 @@ set PNR_DIR ../pnr/
 # read in the names of all the files containing the verilog modules
 # variable "RTL_DIR" to the HDL directory w.r.t synthesis directory
 set RTL_DIR ../rtl/
-read_file -format sverilog "$RTL_DIR/aes_tools.sv $RTL_DIR/aes_modules.sv"
+analyze -format sverilog "$RTL_DIR/aes_tools.sv $RTL_DIR/aes_modules.sv"
+elaborate $MOD_NAME
+
+set_dont_touch [get_cells -hierarchical *scrambled_key*]
+set_dont_touch [get_cells -hierarchical *AES_SBOX*]
 
 
 # Set the current design to the name of the top level instance you are
