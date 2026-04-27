@@ -8,9 +8,10 @@
 set CLK_NAME "clk"
 
 
+
 # set variable "MOD_NAME" to tell Design Compiler the name of the
 # topmost module that you want it to synthesize.
-set MOD_NAME aes_fsm
+set MOD_NAME aes_fsm_unlocked
 
 # set variable "REPORT_DIR" to be the output directory
 # w.r.t. synthesis directory. The reports will be placed there. When
@@ -19,10 +20,18 @@ set MOD_NAME aes_fsm
 set RPT_DIR rpt
 file mkdir $RPT_DIR
 
+set NETLIST_NAME aes_unlocked
+
+define_design_lib WORK -path ./WORK
+
+file delete -force -- {*}[glob -nocomplain [file join ./WORK/ *]]
+remove_design -all
+
+
 # initialize link and synthetic libraries
 set synthetic_library [list dw_foundation.sldb]
-set link_library [list gpdk045_fast.db dw_foundation.sldb]
-set target_library gpdk045_fast.db
+set link_library [list * stdcells.db dw_foundation.sldb]
+set target_library "stdcells.db"
 
 # directory where to put the outputs that are needed by PNR, relative
 # to the synthesis directory
@@ -31,7 +40,11 @@ set PNR_DIR ../pnr/
 # read in the names of all the files containing the verilog modules
 # variable "RTL_DIR" to the HDL directory w.r.t synthesis directory
 set RTL_DIR ../rtl/
-read_file -format sverilog "$RTL_DIR/aes_tools.sv $RTL_DIR/aes_modules.sv"
+analyze -format sverilog "$RTL_DIR/aes_tools.sv $RTL_DIR/aes_modules.sv $RTL_DIR/aes_fsm_unlocked.sv"
+elaborate $MOD_NAME
+
+#set_dont_touch [get_cells -hierarchical *scrambled_key*]
+#set_dont_touch [get_cells -hierarchical *AES_SBOX*]
 
 
 # Set the current design to the name of the top level instance you are

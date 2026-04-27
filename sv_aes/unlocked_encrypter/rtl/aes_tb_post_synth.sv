@@ -19,7 +19,7 @@ module aes_tb;
     signal_t start;
     signal_t ready;
 
-    aes_fsm dut (
+    aes_fsm_unlocked dut (
         .clk(clk),
         .rst(rst),
         .bus_plaintext(plaintext),
@@ -29,24 +29,23 @@ module aes_tb;
         .bus_ready(ready)
     );
 
-    initial clk = 0;
-    always #5 clk = ~clk;
+    initial begin
+        clk = 0;
+        rst = 1;
+        start = 0;
+        plaintext = 0;
+        key = 0;
+        forever #10 clk <= ~clk;
+    end
 
     const state_t TV_PT   = "testingaes123456";
     const key_t TV_KEY  = "ascrenci33882356";
     const state_t TV_EXP  = 128'h44f43f501c0cc07af19c621243fe01c0;
 
     initial begin
-        // Initialize
-        rst = 1;
-        start = 0;
-        plaintext = 0;
-        key = 0;
-        
-        // RST Pulse
-        repeat(5) @(posedge clk);
+        @(posedge clk); #1;
         rst = 0;
-        @(posedge clk);
+        @(posedge clk); #1;
 
         // Apply inputs and start
         $display("--- Starting AES Encryption Test ---");
@@ -54,9 +53,9 @@ module aes_tb;
         key = TV_KEY;
 
         // Pulse start for one clk period
-        @(posedge clk);
+        @(posedge clk); #1;
         start = 1;
-        repeat(1) @(posedge clk);
+        @(posedge clk); #1;
         start = 0; 
 
         // Wait for dut to pulse ready
@@ -81,7 +80,7 @@ module aes_tb;
     // Waveform Export (For GTKWave or Vivado)
     initial begin
         $dumpfile("aes_post_synth.vcd");
-        $dumpvars(0, aes_tb);
+        $dumpvars(1, aes_tb);
     end
 
 endmodule

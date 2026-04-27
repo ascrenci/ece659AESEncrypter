@@ -10,3 +10,4 @@ netlist.v
 FreePDK/
 gscl45nm.v
 slow_vdd1v0_basicCells.v
+stdcells.v

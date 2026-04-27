@@ -4,10 +4,20 @@ FLAGS    = -sverilog -debug_acc+all -timescale=1ns/1ps -kdb
 TOP_NAME = aes_tb
 SRC      = aes_tools.sv \
 		   aes_modules.sv \
+		   aes_fsm_locked.sv \
 		   aes_tb.sv
+
+RAW_KEY  = testingaessarkey
 SAR_KEY ?= 0
-SYNTH	 = slow_vdd1v0_basicCells.v \
-		   netlist.v \
+
+ifeq ($(SAR_KEY), KEY)
+	KEY_HEX = $(shell printf "$(RAW_KEY)" | xxd -p)
+else
+	KEY_HEX = $(SAR_KEY)
+endif
+
+SYNTH	 = -v stdcells.v \
+		   aes_locked.v \
 		   aes_tb_post_synth.sv
  
 # --- Default Target ---
@@ -19,7 +29,7 @@ compile:
 
 # --- Simulation ---
 run:
-	./simv +SAR_KEY=$(SAR_KEY)
+	./simv +SAR_KEY=$(KEY_HEX)
 
 # --- GUI Mode ---
 gui:
