@@ -21,32 +21,30 @@ module aes_tb;
         .ready(ready)
     );
 
-    initial clk = 0;
-    always #5 clk = ~clk;
-                           //16bytesrulerhere
-    const logic [127:0] TV_PT   = "testingaes123456";//128'h00112233445566778899AABBCCDDEEFF;//
-    const logic [127:0] TV_KEY  = "ascrenci33882356";//128'h000102030405060708090A0B0C0D0E0F;//
-    const logic [127:0] TV_EXP  = 128'h44f43f501c0cc07af19c621243fe01c0;
-
     initial begin
+        clk = 0;
         rst = 1;
         start = 0;
         plaintext = 0;
         key = 0;
         sat_key = 0;
+        forever #5 clk <= ~clk;
+    end
+                                //16bytesrulerhere
+    const logic[127:0] TV_PT   = "testingaes123456";
+    const logic[127:0] TV_KEY  = "ascrenci33882356";
+    const logic[127:0] TV_EXP  = 128'h44f43f501c0cc07af19c621243fe01c0;
 
-        repeat(5) @(posedge clk);
+    initial begin
+        @(posedge clk); #1;
         rst = 0;
-        @(posedge clk);
-
         $display("--- Starting AES Encryption Test ---");
         plaintext = TV_PT;
         key = TV_KEY;
         $value$plusargs("SAR_KEY=%h", sat_key);
-
-        @(posedge clk);
+        @(negedge clk); #1;
         start = 1;
-        repeat(1) @(posedge clk);
+        @(posedge clk); #1;
         start = 0;
 
         do @(posedge clk); while (!ready);
@@ -70,7 +68,7 @@ module aes_tb;
 
     initial begin
         $dumpfile("aes_test.vcd");
-        $dumpvars(0, aes_tb);
+        $dumpvars(1, aes_tb.dut);
     end
 
 endmodule

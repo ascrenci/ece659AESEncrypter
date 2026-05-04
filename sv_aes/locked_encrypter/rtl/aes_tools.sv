@@ -4,7 +4,7 @@ package aes_pkg;
     typedef logic [127:0] key_t;
     typedef logic [7:0] sbox_t [256];
     typedef logic signal_t;
-    typedef logic [127:0] sar_key_t;
+    typedef logic [127:0] sat_key_t;
 
     function automatic logic [7:0] get_rcon(logic [3:0] round);
         case (round)
@@ -96,7 +96,7 @@ interface aes_if;
     aes_pkg::state_t ciphertext;
     aes_pkg::signal_t start;
     aes_pkg::signal_t ready;
-    aes_pkg::sar_key_t sar_key;
+    aes_pkg::sat_key_t sat_key;
 
-    modport dut (input plaintext, key, sar_key, start, output ciphertext, ready);
+    modport dut (input plaintext, key, sat_key, start, output ciphertext, ready);
 endinterface

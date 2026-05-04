@@ -7,6 +7,7 @@ SRC      = aes_modules.sv \
 		   aes_tb.sv
 
 RAW_KEY  = testingaessarkey
+#26377374696e353365217333726b6579
 SAR_KEY ?= 0
 
 ifeq ($(SAR_KEY), KEY)

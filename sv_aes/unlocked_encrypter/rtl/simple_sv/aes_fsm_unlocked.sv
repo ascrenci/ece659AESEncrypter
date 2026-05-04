@@ -21,7 +21,7 @@ module aes_fsm_unlocked (
     state_t round_out;
     logic skip_mc;
 
-    assign key_to_expand = (current_state == INIT) ? bus.key : key_reg;
+    assign key_to_expand = (current_state == INIT) ? key : key_reg;
 
     key_expansion u_key_expansion (
         .round_num(round_ctr),

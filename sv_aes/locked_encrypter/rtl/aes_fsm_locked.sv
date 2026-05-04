@@ -18,13 +18,11 @@ module aes_fsm_locked (
     logic skip_mc;
 
     // SAR Lock Vars
-    localparam sar_key_t CORRECT_KEY = "testingaessarkey";
-    key_t expanded_key;
-    key_t scrambled_key_reg;
-    logic [3:0] byte_ctr;
-    logic [7:0] sbox_in, sbox_out;
+    localparam sat_key_t CORRECT_KEY = "testingaessarkey";
+    logic [1:0] sat_round;
+    key_t key_mask;
 
-    assign key_to_expand = (current_state == INIT) ? bus.key : key_reg;
+    assign key_to_expand = (current_state == INIT) ? (bus.key^key_mask) : key_reg;
 
     key_expansion u_key_expansion (
         .round_num(round_ctr),
@@ -51,10 +49,8 @@ module aes_fsm_locked (
 
         case (current_state)
             IDLE:   if (bus.start) next_state = INIT;
-            INIT:   begin
-                if (byte_ctr == 4'd15) next_state = ROUNDS;
-                else next_state = INIT;
-            end
+            INIT: if (sat_round <= 2'd1) next_state = INIT;
+                  else                next_state = ROUNDS;
             ROUNDS: if (round_ctr >= 4'd9) next_state = FINAL;
                     else                   next_state = ROUNDS;
             FINAL:  begin
@@ -69,48 +65,39 @@ module aes_fsm_locked (
         endcase
     end
 
-    /*
-    always_comb begin
-        expanded_key_clean = bus.sar_key ^ CORRECT_KEY;
-        expanded_key = {expanded_key_clean[95:0], expanded_key_clean[127:96]};
-        for (int i = 0; i < 16; i++) begin
-            scrambled_key[127 - i*8 -: 8] = (expanded_key[127 - i*8 -: 8] == 8'h00) ? 8'h00: AES_SBOX[expanded_key[127 - i*8 -: 8]];
-        end
-    end*/
-
-    assign expanded_key = bus.sar_key^CORRECT_KEY;
-    always_comb begin
-        sbox_in = expanded_key[127 - byte_ctr*8 -: 8];
-        sbox_out = (sbox_in == 8'h00) ? 8'h00: AES_SBOX[sbox_in];
-    end
+    assign key_mask = (sat_round == 2) ? (round_out ^ 128'hbfa63cc726e34ac88d8a2abf025113f2): 128'h0;
 
     always_ff @(posedge clk) begin
         if (rst) begin
             state_reg <= '0;
             key_reg   <= '0;
             round_ctr <= 4'd0;
-            scrambled_key_reg <= '0;
-            byte_ctr <= '0;
+            sat_round <= 2'd0;
         end else begin
             case (current_state)
                 IDLE: begin
                     round_ctr <= 4'd0;
-                    byte_ctr <= '0;
+                    sat_round <= 2'd0;
                 end
                 INIT: begin
-                    if (byte_ctr < 4'd15) begin
-                        scrambled_key_reg <= {scrambled_key_reg[119:0], sbox_out};
-                        //shifting_key <= {shifting_key[119:0], 8'h00};
-                        byte_ctr <= byte_ctr + 1;
-                    end 
-                    if (byte_ctr == 4'd15) begin
+                    if (sat_round == 2'd0) begin
+                        state_reg <= bus.sat_key;
+                        key_reg <= bus.sat_key;
+                        sat_round <= sat_round + 1;
+                    end else
+                    if (sat_round == 1) begin
+                        state_reg <= round_out;
+                        key_reg <= bus.sat_key;
+                        sat_round <= sat_round + 1;
+                    end else if (sat_round == 2) begin
                         state_reg <= bus.plaintext ^ bus.key;
                         key_reg   <= next_key; 
                         round_ctr <= 4'd1;
+                        sat_round <= 2'd0;
                     end
                 end
                 ROUNDS, FINAL: begin
-                    state_reg <= round_out^scrambled_key_reg;
+                    state_reg <= round_out;
                     key_reg   <= next_key; 
                     round_ctr <= round_ctr + 1;
                 end
